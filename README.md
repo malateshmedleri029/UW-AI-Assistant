@@ -8,11 +8,10 @@ all grounded in API data, never hallucinated.
 ---
 
 ## Table of Contents
-
+- [System Design](PLAN.md)
 - [Architecture Overview](#architecture-overview)
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
-- [System Design](PLAN.md)
 - [Backend — File by File](#backend--file-by-file)
 - [Frontend — File by File](#frontend--file-by-file)
 - [Evaluation Framework](#evaluation-framework)
