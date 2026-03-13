@@ -1,0 +1,32 @@
+[
+  {
+    "name": "email_referral_with_rerating",
+    "data": [
+      {
+        "query": "Frame an email to the broker for policy 25PL00012345 including re-rating history",
+        "expected_tool_use": [
+          {
+            "tool_name": "generate_broker_email",
+            "tool_input": { "policy_ref": "25PL00012345", "include_rerating": true }
+          }
+        ],
+        "reference": "A professional email to Aon Risk Solutions regarding policy 25PL00012345 (Meridian Consulting Group) explaining the referral was triggered by the insured's revenue level and claims history, acknowledging the two re-rating adjustments that reduced the premium from $310K to $245K, and inviting further discussion."
+      }
+    ]
+  },
+  {
+    "name": "email_decline",
+    "data": [
+      {
+        "query": "Draft an email to the broker about the decline of 25CY00134567",
+        "expected_tool_use": [
+          {
+            "tool_name": "generate_broker_email",
+            "tool_input": { "policy_ref": "25CY00134567", "include_rerating": false }
+          }
+        ],
+        "reference": "A professional email to Willis Towers Watson regarding policy 25CY00134567 (CryptoVault Exchange) explaining the decline was due to the business operating in an excluded industry category and the security incident history, without revealing internal risk scores or authority limits."
+      }
+    ]
+  }
+]

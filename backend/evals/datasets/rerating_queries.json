@@ -1,0 +1,32 @@
+[
+  {
+    "name": "rerating_cyber_3_events",
+    "data": [
+      {
+        "query": "How many times was policy 25CY00045678 re-rated and what changed?",
+        "expected_tool_use": [
+          {
+            "tool_name": "get_rerating_history_tool",
+            "tool_input": { "policy_ref": "25CY00045678" }
+          }
+        ],
+        "reference": "Policy 25CY00045678 was re-rated 3 times. Initial premium was $450,000. (1) First re-rating reduced to $420,000 after completing a penetration test and remediating critical findings. (2) Second re-rating to $395,000 after reducing social engineering sub-limit from $5M to $2M. (3) Third re-rating to $380,000 after deploying MFA across all cloud applications and achieving NIST CSF Tier 3. Current premium is $380,000, a 15.6% reduction from initial."
+      }
+    ]
+  },
+  {
+    "name": "rerating_no_history",
+    "data": [
+      {
+        "query": "Show the re-rating history for 25DO00023456",
+        "expected_tool_use": [
+          {
+            "tool_name": "get_rerating_history_tool",
+            "tool_input": { "policy_ref": "25DO00023456" }
+          }
+        ],
+        "reference": "Policy 25DO00023456 (Apex Financial Holdings) has not been re-rated. The premium remains at the initial $520,000."
+      }
+    ]
+  }
+]

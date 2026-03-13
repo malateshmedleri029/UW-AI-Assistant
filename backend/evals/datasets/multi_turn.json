@@ -1,0 +1,47 @@
+[
+  {
+    "name": "full_flow_referral_analysis_email_status",
+    "data": [
+      {
+        "query": "What caused policy 25CY00045678 to be referred?",
+        "expected_tool_use": [
+          {
+            "tool_name": "get_referral_reasons",
+            "tool_input": { "policy_ref": "25CY00045678" }
+          }
+        ],
+        "reference": "Analysis of the 5 Q&A pairs that caused the Cyber Liability referral for DataVault Technologies, including PII volume, prior breach, NIST rating, partial MFA, and low security budget."
+      },
+      {
+        "query": "Show the re-rating history",
+        "expected_tool_use": [
+          {
+            "tool_name": "get_rerating_history_tool",
+            "tool_input": { "policy_ref": "25CY00045678" }
+          }
+        ],
+        "reference": "Summary of 3 re-rating events reducing premium from $450K to $380K through penetration testing, sub-limit adjustment, and MFA deployment."
+      },
+      {
+        "query": "Frame an email to the broker about this",
+        "expected_tool_use": [
+          {
+            "tool_name": "generate_broker_email",
+            "tool_input": { "policy_ref": "25CY00045678", "include_rerating": true }
+          }
+        ],
+        "reference": "Professional email to Willis Towers Watson about the cyber liability referral, incorporating both the referral reasons and the re-rating history showing the insured's security improvements."
+      },
+      {
+        "query": "Mark this as completed",
+        "expected_tool_use": [
+          {
+            "tool_name": "update_policy_status_tool",
+            "tool_input": { "policy_ref": "25CY00045678", "new_status": "completed" }
+          }
+        ],
+        "reference": "Confirmation that policy 25CY00045678 status has been updated from in_progress to completed."
+      }
+    ]
+  }
+]

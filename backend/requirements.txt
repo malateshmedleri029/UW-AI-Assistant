@@ -1,0 +1,9 @@
+google-adk
+google-genai
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+sse-starlette
+python-dotenv
+httpx

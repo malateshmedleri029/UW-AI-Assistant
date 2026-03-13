@@ -1,0 +1,47 @@
+[
+  {
+    "name": "referral_pl_revenue_claims",
+    "data": [
+      {
+        "query": "What caused policy 25PL00012345 to be referred?",
+        "expected_tool_use": [
+          {
+            "tool_name": "get_referral_reasons",
+            "tool_input": { "policy_ref": "25PL00012345" }
+          }
+        ],
+        "reference": "Policy 25PL00012345 (Meridian Consulting Group, Professional Liability) was referred for two high-severity reasons: (1) annual revenue of $500M exceeds the $100M authority threshold for Professional Liability, and (2) 3 prior claims totaling $2.1M in the last 5 years exceeds the 2-claim threshold. Additional medium-severity factors include high-profile Fortune 500 client base increasing exposure."
+      }
+    ]
+  },
+  {
+    "name": "referral_do_sec_inquiry",
+    "data": [
+      {
+        "query": "Why was the Apex Financial Holdings D&O policy referred?",
+        "expected_tool_use": [
+          {
+            "tool_name": "get_referral_reasons",
+            "tool_input": { "policy_ref": "25DO00023456" }
+          }
+        ],
+        "reference": "Policy 25DO00023456 (Apex Financial Holdings, Directors & Officers) was referred due to: market capitalization of $4.2B exceeding the $1B threshold requiring senior UW approval, an active informal SEC inquiry regarding Q3 disclosures, less than 50% independent board members, and a minor financial restatement in 2024."
+      }
+    ]
+  },
+  {
+    "name": "referral_cyber_data_breach",
+    "data": [
+      {
+        "query": "What caused this referral?",
+        "expected_tool_use": [
+          {
+            "tool_name": "get_referral_reasons",
+            "tool_input": { "policy_ref": "25CY00045678" }
+          }
+        ],
+        "reference": "Policy 25CY00045678 (DataVault Technologies, Cyber Liability) was referred for: 45 million PII records exceeding the 10M threshold, a prior phishing breach in 2024, NIST CSF Tier 2 rating below the recommended Tier 3, partial MFA coverage, and IT security budget below the 1% of revenue benchmark."
+      }
+    ]
+  }
+]

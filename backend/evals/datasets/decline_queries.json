@@ -1,0 +1,32 @@
+[
+  {
+    "name": "decline_crypto_exchange",
+    "data": [
+      {
+        "query": "What caused policy 25CY00134567 to be declined?",
+        "expected_tool_use": [
+          {
+            "tool_name": "get_decline_reasons",
+            "tool_input": { "policy_ref": "25CY00134567" }
+          }
+        ],
+        "reference": "Policy 25CY00134567 (CryptoVault Exchange, Cyber Liability) was declined because: cryptocurrency exchanges are on the excluded industries list, a hot wallet compromise in 2024 resulted in $18M customer fund loss, fragmented regulatory status across 12 states with no federal charter, and 70% hot wallet ratio exceeds acceptable risk parameters."
+      }
+    ]
+  },
+  {
+    "name": "decline_doj_investigation",
+    "data": [
+      {
+        "query": "Why was the Vanguard Capital D&O declined?",
+        "expected_tool_use": [
+          {
+            "tool_name": "get_decline_reasons",
+            "tool_input": { "policy_ref": "25DO00156789" }
+          }
+        ],
+        "reference": "Policy 25DO00156789 (Vanguard Capital Partners, D&O) was declined due to: active parallel DOJ and SEC investigations for accounting fraud, CEO and CFO personally named in shareholder derivative suit, debt-to-equity ratio of 4.8:1 indicating severe financial distress, and auditor going concern opinion confirming insolvency risk."
+      }
+    ]
+  }
+]

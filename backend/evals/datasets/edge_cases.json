@@ -1,0 +1,52 @@
+[
+  {
+    "name": "invalid_policy_ref_format",
+    "data": [
+      {
+        "query": "What caused policy ABC123 to be referred?",
+        "expected_tool_use": [],
+        "reference": "The agent should recognize that ABC123 is not a valid policy reference format and ask the user to provide a valid reference in the format 2 digits + 2 letters + 8 digits."
+      }
+    ]
+  },
+  {
+    "name": "off_topic_request",
+    "data": [
+      {
+        "query": "What's the weather like today?",
+        "expected_tool_use": [],
+        "reference": "The agent should politely redirect the user, explaining it can only assist with policy referral/decline analysis, re-rating history, broker emails, and status updates."
+      }
+    ]
+  },
+  {
+    "name": "referral_tool_on_decline_policy",
+    "data": [
+      {
+        "query": "What caused policy 25CY00134567 to be referred?",
+        "expected_tool_use": [
+          {
+            "tool_name": "get_decline_reasons",
+            "tool_input": { "policy_ref": "25CY00134567" }
+          }
+        ],
+        "reference": "The agent should recognize this is a declined policy (not referred) and use the decline reasons tool instead, then explain the decline reasons to the user."
+      }
+    ]
+  },
+  {
+    "name": "nonexistent_policy",
+    "data": [
+      {
+        "query": "Show me the reasons for policy 99ZZ99999999",
+        "expected_tool_use": [
+          {
+            "tool_name": "get_referral_reasons",
+            "tool_input": { "policy_ref": "99ZZ99999999" }
+          }
+        ],
+        "reference": "The agent should report that policy 99ZZ99999999 was not found in the system."
+      }
+    ]
+  }
+]

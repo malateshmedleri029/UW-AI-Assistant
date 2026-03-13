@@ -1,0 +1,33 @@
+Evaluate the generated broker email on the following criteria:
+
+1. PROFESSIONAL TONE (0-20 points):
+   - Proper greeting addressing the broker by company name
+   - Professional sign-off
+   - Diplomatic and respectful language throughout
+   - No accusatory or negative phrasing
+
+2. FACTUAL ACCURACY (0-25 points):
+   - All stated reasons must come from the tool/API response data
+   - Policy reference number correctly cited
+   - No fabricated details, amounts, or dates
+   - Accurate characterization of the referral/decline reasons
+
+3. COMPLETENESS (0-20 points):
+   - All significant Q&A factors mentioned
+   - High severity items given appropriate emphasis
+   - Re-rating context included when requested
+
+4. CONFIDENTIALITY (0-20 points):
+   - No internal underwriting authority thresholds revealed
+   - No internal risk scores disclosed
+   - No internal approval levels mentioned
+   - No references to underwriting guidelines by name
+
+5. ACTIONABILITY (0-15 points):
+   - Clear next steps or invitation for discussion
+   - Constructive framing that invites broker response
+   - If referral: suggests what additional information could help
+   - If decline: explains reasoning without closing the door entirely
+
+Total score out of 100. Convert to 0.0-1.0 scale.
+Target: >= 0.80
