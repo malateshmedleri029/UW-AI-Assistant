@@ -12,6 +12,7 @@ all grounded in API data, never hallucinated.
 - [Architecture Overview](#architecture-overview)
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
+- [System Design](PLAN.md)
 - [Backend — File by File](#backend--file-by-file)
 - [Frontend — File by File](#frontend--file-by-file)
 - [Evaluation Framework](#evaluation-framework)
@@ -48,7 +49,7 @@ all grounded in API data, never hallucinated.
 │  policies router           chat router                       │
 │                                 │                           │
 │  mock_policies.py          ADK Runner                        │
-│  mock_qa_data.py           LlmAgent (Gemini 2.0 Flash)      │
+│  mock_qa_data.py           LlmAgent (Gemini 2.5 Flash Lite)  │
 │                                 │                           │
 │                            Tool calls:                       │
 │                            ├── get_referral_reasons         │
@@ -77,7 +78,7 @@ receives the API response, then synthesises and presents only those facts to the
 | HTTP/Stream | Native `fetch` + `ReadableStream` | SSE consumption |
 | Backend | FastAPI (Python 3.12) | REST API + SSE endpoint |
 | AI Framework | Google ADK (Agent Development Kit) | Agent orchestration |
-| LLM | Gemini 2.0 Flash | Analysis + email drafting |
+| LLM | Gemini 2.5 Flash Lite | Analysis + email drafting |
 | Streaming | `sse-starlette` | Server-Sent Events |
 | Config | `pydantic-settings` + `python-dotenv` | Environment management |
 | Package mgr | `uv` (Python) / `npm` (Node) | Dependency management |
@@ -205,7 +206,7 @@ incoming request bodies and outgoing response bodies against them automatically.
 ### `backend/app/data/mock_policies.py`
 **Synthetic policy inventory — the source of truth for policy data.**
 
-Contains 20+ synthetic specialty commercial lines policies with the naming pattern:
+Contains 22 synthetic specialty commercial lines policies (12 referral, 10 decline) with the naming pattern:
 ```
 2 digits + 2 uppercase letters + 8 digits
 Example: 25PL00012345  (year=25, LOB=PL, sequence=00012345)
@@ -250,8 +251,8 @@ Each Q&A pair contains:
 ```python
 uw_assistant_agent = LlmAgent(
     name="uw_smart_ai_assistant",
-    model="gemini-2.0-flash",          # 1,500 RPD free tier
-    instruction=SYSTEM_INSTRUCTION,    # 500-word system prompt
+    model="gemini-2.5-flash-lite",     # best available free-tier model
+    instruction=SYSTEM_INSTRUCTION,    # system prompt
     tools=[...5 tool functions...],
     before_model_callback=...,         # input guardrail
     before_tool_callback=...,          # tool execution guardrail
@@ -513,24 +514,24 @@ call to action.
 
 ## Local Development Setup
 
-### Prerequisites
-
-| Requirement | Version | Where to get it |
-|---|---|---|
-| Python | 3.10+ (3.12 recommended) | https://www.python.org/downloads/ |
-| Node.js | 18+ (20 LTS recommended) | https://nodejs.org/en/download |
-| Git | Any recent version | https://git-scm.com/downloads |
-| Google AI Studio API key | — | https://aistudio.google.com/app/apikey |
-
-> **Windows users:** All commands below are for **PowerShell** unless stated otherwise.
-> If you are using **Command Prompt (cmd)**, the activation path is the same but use `\` separators.
-> Using **Git Bash** on Windows? The macOS/Linux commands work as-is.
+> **Windows users:** All commands are written for **PowerShell**. If you are using Git Bash on Windows, use the macOS/Linux commands instead — they work as-is.
 
 ---
 
-### 1. Clone the repository
+### Prerequisites
 
-**macOS / Linux / Git Bash**
+| Requirement | Version | Notes |
+|---|---|---|
+| Python | 3.10+ (3.12 recommended) | https://www.python.org/downloads/ |
+| Node.js | 18+ (20 LTS recommended) | Installed via fnm in Step 3 below — do not skip |
+| Git | Any recent version | https://git-scm.com/downloads |
+| Google AI Studio API key | — | https://aistudio.google.com/app/apikey — free tier is sufficient |
+
+---
+
+### Step 1 — Clone the repository
+
+**macOS / Linux**
 ```bash
 git clone https://github.com/your-org/uw-smart-ai-assistant.git
 cd uw-smart-ai-assistant
@@ -544,17 +545,21 @@ cd uw-smart-ai-assistant
 
 ---
 
-### 2. Backend setup
+### Step 2 — Set up the Python backend
 
 #### macOS / Linux
 
 ```bash
 cd backend
 
-# Install uv (fast Python package manager)
-pip install uv
+# Install uv using the official installer (recommended — works even if pip is not on PATH)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+source $HOME/.local/bin/env   # make uv available in this session without restarting terminal
+
+# Alternatively, if you have pip3: pip3 install uv
 
 # Create a Python 3.12 virtual environment
+# uv will automatically download Python 3.12 if it is not already installed on your system
 uv venv --python 3.12
 
 # Activate the virtual environment
@@ -563,152 +568,292 @@ source .venv/bin/activate
 # Install all Python dependencies
 uv pip install -r requirements.txt
 
-# Copy the example env file and add your API key
+# Create your local environment file from the template
 cp .env.example .env
-# Open .env in any editor and set:  GOOGLE_API_KEY=your_actual_key_here
+```
+
+Now open `backend/.env` in any text editor and replace the placeholder with your real key:
+```
+GOOGLE_API_KEY=your_google_ai_studio_api_key_here
 ```
 
 #### Windows (PowerShell)
 
+**Step 2a — Install uv**
+
+Run this first:
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+> **Close PowerShell and reopen it** before continuing — the installer adds uv to your PATH and this only takes effect in a new session.
+
+**Step 2b — Create the virtual environment and install dependencies**
+
+In the new PowerShell window:
 ```powershell
 cd backend
 
-# Install uv (fast Python package manager)
-pip install uv
-
 # Create a Python 3.12 virtual environment
+# uv will automatically download Python 3.12 if it is not already installed on your system
 uv venv --python 3.12
 
 # Activate the virtual environment
+# If you get a script execution policy error, first run:
+#   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 .venv\Scripts\Activate.ps1
-
-# If you get a script execution policy error, run this first:
-# Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 # Install all Python dependencies
 uv pip install -r requirements.txt
 
-# Copy the example env file and add your API key
+# Create your local environment file from the template
 Copy-Item .env.example .env
-# Open .env in any editor and set:  GOOGLE_API_KEY=your_actual_key_here
 ```
 
-> **uv not available?** You can use the standard `venv` module instead:
->
-> macOS/Linux: `python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt`
->
-> Windows: `python -m venv .venv && .venv\Scripts\Activate.ps1 && pip install -r requirements.txt`
+Now open `backend\.env` in any text editor and replace the placeholder with your real key:
+```
+GOOGLE_API_KEY=your_google_ai_studio_api_key_here
+```
+
+> **uv not available?** Use the standard venv module instead:
+> - macOS/Linux: `python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt`
+> - Windows: `python -m venv .venv && .venv\Scripts\Activate.ps1 && pip install -r requirements.txt`
 
 ---
 
-### 3. Start the backend
+### Step 3 — Install Node.js
 
-#### macOS / Linux
+First check whether you already have Node 18 or higher:
 
+```bash
+node --version   # must print v18.x.x or higher
+```
+
+If the command is not found, or the version is below 18, follow the instructions for your OS below.
+
+#### macOS / Linux — install via fnm (recommended)
+
+```bash
+# 1. Install fnm
+curl -fsSL https://fnm.vercel.app/install | bash
+
+# 2. Add fnm initialisation to your shell profile so it loads in every new terminal.
+#    For zsh (default on macOS):
+echo 'eval "$(fnm env --use-on-cd --shell zsh)"' >> ~/.zshrc
+
+#    For bash (Linux / older macOS):
+#    echo 'eval "$(fnm env --use-on-cd --shell bash)"' >> ~/.bashrc
+
+# 3. Reload your shell profile to activate fnm in this session
+source ~/.zshrc
+#    bash users: source ~/.bashrc
+
+# 4. Install and activate Node 20 LTS
+fnm install 20
+fnm use 20
+
+# 5. Set Node 20 as the default so every new terminal automatically has it on PATH
+#    Without this, opening a new terminal (e.g. for the frontend) will not find npm
+fnm default 20
+
+# 6. Verify
+node --version   # should print v20.x.x
+npm --version    # should print 10.x.x
+```
+
+> **Troubleshooting:** If `fnm` is still not found after step 3, close the terminal completely, open a new one, and run steps 4–6 again.
+
+#### macOS — alternative via Homebrew
+
+```bash
+brew install node
+node --version
+```
+
+#### Windows (PowerShell) — Option A: Node.js installer (simplest)
+
+1. Go to https://nodejs.org and download the **Windows LTS installer (.msi)**
+2. Run the installer — it adds `node` and `npm` to your PATH automatically
+3. **Close and reopen PowerShell**, then verify:
+
+```powershell
+node --version
+npm --version
+```
+
+#### Windows (PowerShell) — Option B: via fnm
+
+```powershell
+# 1. Install fnm via Windows Package Manager
+winget install Schniz.fnm
+```
+
+> **Close PowerShell and reopen it** before continuing.
+
+```powershell
+# 2. Add fnm shell integration to your PowerShell profile so every new terminal loads Node
+#    This creates the profile file if it doesn't exist, then appends the fnm init line
+if (!(Test-Path $PROFILE)) { New-Item -Force $PROFILE | Out-Null }
+Add-Content $PROFILE "`nfnm env --use-on-cd | Out-String | Invoke-Expression"
+
+# 3. Reload the profile to activate fnm in this session
+. $PROFILE
+
+# 4. Install Node 20 LTS and set it as the default for all new terminals
+fnm install 20
+fnm use 20
+fnm default 20
+
+# 5. Verify
+node --version
+npm --version
+```
+
+#### Windows (PowerShell) — Option C: via Chocolatey
+
+```powershell
+choco install nodejs-lts
+# Restart PowerShell, then verify: node --version
+```
+
+---
+
+### Step 4 — Install frontend dependencies
+
+**macOS / Linux**
+```bash
+cd frontend
+npm install
+```
+
+**Windows (PowerShell)**
+```powershell
+cd frontend
+npm install
+```
+
+This installs all Angular packages into `frontend/node_modules/`. It takes about 30–60 seconds on first run.
+
+> **Windows — `npm` not found?** If you installed Node via Option B (fnm), open a fresh PowerShell window (so the profile loads), navigate back to the `frontend` folder, and retry.
+
+---
+
+### Step 5 — Start the backend
+
+Open a terminal in the project root and run:
+
+**macOS / Linux**
 ```bash
 cd backend
 source .venv/bin/activate
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-#### Windows (PowerShell)
-
+**Windows (PowerShell)**
 ```powershell
 cd backend
 .venv\Scripts\Activate.ps1
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-Verify the backend is running:
-- Health check: http://localhost:8000/api/health → `{"status": "ok"}`
+You should see:
+```
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Application startup complete.
+```
+
+Verify in your browser or a new terminal tab:
+- Health check: http://localhost:8000/api/health → `{"status":"ok","app":"UW Smart AI Assistant"}`
 - Interactive API docs: http://localhost:8000/docs
 
----
-
-### 4. Frontend setup
-
-#### macOS / Linux
-
-```bash
-cd frontend
-
-# --- Skip this block if Node 18+ is already installed ---
-# Check first:  node --version
-#
-# Option A: Install via fnm (version manager)
-curl -fsSL https://fnm.vercel.app/install | bash
-source ~/.bashrc   # or ~/.zshrc depending on your shell
-fnm install 20
-fnm use 20
-#
-# Option B: Install via Homebrew
-# brew install node
-# --------------------------------------------------------
-
-# Install project dependencies
-npm install
-```
-
-#### Windows (PowerShell)
-
-```powershell
-cd frontend
-
-# --- Skip this block if Node 18+ is already installed ---
-# Check first:  node --version
-#
-# Option A: Download Node.js installer (simplest)
-# Go to https://nodejs.org → download the Windows LTS installer (.msi)
-# Run the installer, it adds node and npm to your PATH automatically.
-#
-# Option B: Install via fnm (version manager)
-winget install Schniz.fnm        # installs fnm via Windows Package Manager
-# Restart PowerShell, then:
-fnm install 20
-fnm use 20
-#
-# Option C: Install via Chocolatey
-# choco install nodejs-lts
-# --------------------------------------------------------
-
-# Install project dependencies
-npm install
-```
+**Leave this terminal running.** Open a new terminal for Step 6.
 
 ---
 
-### 5. Start the frontend
+### Step 6 — Start the frontend
 
-#### macOS / Linux
+In a **new terminal**, run:
 
+**macOS / Linux**
 ```bash
 cd frontend
 npm start
-# or explicitly: npx ng serve --port 4200
 ```
 
-#### Windows (PowerShell)
-
+**Windows (PowerShell)**
 ```powershell
 cd frontend
 npm start
-# or explicitly: npx ng serve --port 4200
 ```
 
-Open http://localhost:4200 in your browser.
+You should see:
+```
+Application bundle generation complete.
+  ➜  Local:   http://localhost:4200/
+```
+
+Open **http://localhost:4200** in your browser. The app should load and display the policy dashboard.
 
 ---
 
 ### Running both servers — quick reference
 
-Open **two terminal windows** (or two PowerShell tabs) and run one command in each:
+You need **two terminal windows** open at the same time:
 
-| Terminal | macOS/Linux | Windows (PowerShell) |
+| Terminal | macOS / Linux | Windows (PowerShell) |
 |---|---|---|
-| Terminal 1 (Backend) | `cd backend && source .venv/bin/activate && uvicorn app.main:app --reload --port 8000` | `cd backend; .venv\Scripts\Activate.ps1; uvicorn app.main:app --reload --port 8000` |
-| Terminal 2 (Frontend) | `cd frontend && npm start` | `cd frontend; npm start` |
+| **1 — Backend** | `cd backend && source .venv/bin/activate && uvicorn app.main:app --reload --port 8000` | `cd backend; .venv\Scripts\Activate.ps1; uvicorn app.main:app --reload --port 8000` |
+| **2 — Frontend** | `cd frontend && npm start` | `cd frontend; npm start` |
 
-Both servers support hot reload — changes to Python or TypeScript files are picked up automatically without restarting.
+Both servers support **hot reload** — changes to Python or TypeScript files are picked up automatically without restarting.
+
+URLs at a glance:
+
+| URL | What it is |
+|---|---|
+| http://localhost:4200 | Angular app (main UI) |
+| http://localhost:8000/api/health | Backend health check |
+| http://localhost:8000/docs | Interactive API docs (Swagger UI) |
+
+---
+
+### Cleaning a previous build
+
+If you need to rebuild from scratch or clear stale cache artefacts:
+
+**macOS / Linux**
+```bash
+# Frontend — removes compiled output and build caches
+rm -rf frontend/dist frontend/.angular frontend/node_modules/.cache
+
+# Backend virtual environment (recreate from scratch with Step 2)
+rm -rf backend/.venv
+```
+
+**Windows (PowerShell)**
+```powershell
+# Frontend
+Remove-Item -Recurse -Force frontend\dist, frontend\.angular, frontend\node_modules\.cache
+
+# Backend virtual environment
+Remove-Item -Recurse -Force backend\.venv
+```
+
+---
+
+### Common issues
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| `npm: command not found` or `node: command not found` | Node not on PATH / fnm not initialised in this shell session | macOS: run `source ~/.zshrc` then retry. Windows: close and reopen PowerShell |
+| `uvicorn: command not found` | Virtual environment not activated | Run `source .venv/bin/activate` (Mac) or `.venv\Scripts\Activate.ps1` (Windows) first |
+| `Application startup complete` not shown | `.env` missing or `GOOGLE_API_KEY` empty | Confirm `backend/.env` exists and contains your real key (not the placeholder) |
+| Chat returns "API key error" | Invalid Gemini key | Get a free key at https://aistudio.google.com/app/apikey |
+| Browser shows CORS error | Backend not running or wrong port | Ensure backend is on port 8000 and frontend on port 4200 |
+| `uv: command not found` | uv not installed | Run the official installer: `curl -LsSf https://astral.sh/uv/install.sh | sh` (Mac/Linux) or see Step 2 (Windows) |
+| PowerShell script execution error | Execution policy blocks `.ps1` scripts | Run `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser` once |
+| `npm` not found when opening a new terminal | `fnm default 20` was never set | Run `fnm default 20` once, then open a fresh terminal |
+| `address already in use` on port 8000 or 4200 | Another process is using that port | Mac: `lsof -ti:8000 \| xargs kill` or `lsof -ti:4200 \| xargs kill`. Windows: `netstat -ano \| findstr :8000` then `taskkill /PID <pid> /F` |
 
 ---
 
@@ -790,10 +935,10 @@ GET /api/health → {"status": "ok", "app": "UW Smart AI Assistant"}
 1. POST /api/chat { message: "What caused this referral?", policy_ref: "25PL00012345" }
 
 2. Backend prepends context:
-   "[Context: Policy 25PL00012345, Insured: Metro Construction, Type: referral, ...]
+   "[Context: Policy 25PL00012345, Insured: Meridian Consulting Group, Type: referral, ...]
     What caused this referral?"
 
-3. ADK Runner sends to Gemini 2.0 Flash
+3. ADK Runner sends to Gemini 2.5 Flash Lite
 
 4. Gemini decides to call: get_referral_reasons("25PL00012345")
    ↓ SSE yields: {"type":"tool_call","tool_name":"get_referral_reasons"}
@@ -812,7 +957,7 @@ GET /api/health → {"status": "ok", "app": "UW Smart AI Assistant"}
 9. after_model_callback fires: checks for internal threshold disclosure
 
 10. Stream ends → {"type":"done"}
-    Backend sends follow-up suggestions: ["Frame email to broker", "Show re-rating history"]
+    Backend sends follow-up suggestions: ["Frame email to broker", "Show re-rating history", "Summarize key risk factors"]
 ```
 
 ### Dynamic thinking budget
@@ -888,7 +1033,7 @@ Four ADK callback hooks protect the system:
 | ALB idle timeout | N/A | Set to 120s+ for SSE connections |
 | SSE keepalive | Not implemented | Add 15s ping yields in event_generator |
 | Sticky sessions | N/A | Not needed once Redis is in place |
-| Gemini quota | Free tier (1,500 RPD) | Upgrade to paid tier for production load |
+| Gemini quota | Free tier (`gemini-2.5-flash-lite`) | Upgrade to paid tier for production load |
 
 ---
 
@@ -911,8 +1056,8 @@ Four ADK callback hooks protect the system:
 5. **No auth.** There is no JWT, OAuth, or session cookie on any endpoint.
    Do not deploy to the internet without adding authentication middleware.
 
-6. **Gemini 2.0 Flash free tier.** The free tier allows 1,500 requests/day.
-   Production deployments require a paid Google AI Studio account.
+6. **Free-tier LLM (`gemini-2.5-flash-lite`).** This is the best available free-tier model.
+   Production deployments with high request volumes require a paid Google AI Studio account.
 
 ---
 
