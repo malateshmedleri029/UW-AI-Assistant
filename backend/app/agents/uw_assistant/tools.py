@@ -7,62 +7,36 @@ from app.data.mock_policies import get_policy_by_ref, update_policy_status as _u
 from app.data.mock_qa_data import get_reasons_for_policy, get_rerating_history
 
 
-def get_referral_reasons(policy_ref: str) -> dict:
-    """Retrieve the exact Q&A pairs that caused a policy to be referred.
+def get_policy_reasons(policy_ref: str) -> dict:
+    """Retrieve the underwriting Q&A pairs that caused a policy to be referred or declined.
+
+    Use this tool whenever the user asks why a policy was referred, why it was declined,
+    what caused the referral, what caused the decline, or what the underwriting reasons are.
+    This tool works for both referral and decline policies — do not worry about the policy
+    type when calling it.
 
     Args:
-        policy_ref: The policy reference number (e.g. 25PL00012345).
+        policy_ref: The policy reference number (e.g. 25PL00012345 or 25CY00134567).
 
     Returns:
-        The authoritative referral reasons from the source system including
-        each underwriting question, the answer given, severity level, and
-        the specific flag that triggered the referral.
+        The authoritative underwriting Q&A pairs including each question, the answer
+        given by the insured, severity level (high/medium/low), and the specific flag
+        that triggered the referral or decline. Also returns policy_type so you know
+        whether to frame the analysis as a referral or decline explanation.
     """
     policy = get_policy_by_ref(policy_ref)
     if not policy:
         return {"error": f"Policy {policy_ref} not found"}
-    if policy["policy_type"] != "referral":
-        return {"error": f"Policy {policy_ref} is a {policy['policy_type']}, not a referral"}
 
     reasons = get_reasons_for_policy(policy_ref)
     if not reasons:
-        return {"error": f"No referral reason data available for {policy_ref}"}
+        return {"error": f"No underwriting reasons data available for {policy_ref}"}
 
     return {
         "policy_ref": policy_ref,
         "insured_name": policy["insured_name"],
         "line_of_business": policy["lob_name"],
-        "policy_type": "referral",
-        "qa_pairs": reasons,
-    }
-
-
-def get_decline_reasons(policy_ref: str) -> dict:
-    """Retrieve the exact Q&A pairs that caused a policy to be declined.
-
-    Args:
-        policy_ref: The policy reference number (e.g. 25CY00134567).
-
-    Returns:
-        The authoritative decline reasons from the source system including
-        each underwriting question, the answer given, severity level, and
-        the specific risk flag that caused the decline.
-    """
-    policy = get_policy_by_ref(policy_ref)
-    if not policy:
-        return {"error": f"Policy {policy_ref} not found"}
-    if policy["policy_type"] != "decline":
-        return {"error": f"Policy {policy_ref} is a {policy['policy_type']}, not a decline"}
-
-    reasons = get_reasons_for_policy(policy_ref)
-    if not reasons:
-        return {"error": f"No decline reason data available for {policy_ref}"}
-
-    return {
-        "policy_ref": policy_ref,
-        "insured_name": policy["insured_name"],
-        "line_of_business": policy["lob_name"],
-        "policy_type": "decline",
+        "policy_type": policy["policy_type"],
         "qa_pairs": reasons,
     }
 

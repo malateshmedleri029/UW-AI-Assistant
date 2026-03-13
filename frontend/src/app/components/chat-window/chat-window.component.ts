@@ -100,7 +100,7 @@ import { ChatMessage } from '../../models/chat.model';
               <mat-icon>send</mat-icon>
             </button>
           </div>
-          <p class="powered">🥷 Powered by Gemini 2.5 Flash Lite · Grounded in API data</p>
+          <p class="powered">🥷 Powered by Gemini 2.5 Flash · Grounded in API data</p>
         </div>
 
       }
@@ -311,6 +311,9 @@ export class ChatWindowComponent implements OnChanges {
         if (ev.session_id) this.sessionId = ev.session_id;
         switch (ev.type) {
           case 'text': aMsg.content += ev.content || ''; this.scrollToBottom(); break;
+          case 'tool_call':
+            if (ev.tool_name === 'update_policy_status_tool') this.statusUpdated.emit();
+            break;
           case 'prompt_suggestions': if (ev.suggestions) this.currentPrompts = ev.suggestions; break;
           case 'done': aMsg.isStreaming = false; this.isStreaming = false; break;
           case 'error': aMsg.content = ev.content || '⚠️ An error occurred.'; aMsg.isStreaming = false; this.isStreaming = false; break;
