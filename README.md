@@ -10,7 +10,7 @@ all grounded in API data, never hallucinated.
 ## Demo
 
 <!-- Replace demo.mp4 with your actual video file name once added to the repo -->
-https://github.com/malateshmedleri029/UW-AI-Assistant/assets/demo.mp4
+[https://github.com/malateshmedleri029/UW-AI-Assistant/assets/demo.mp4](https://photos.app.goo.gl/Hfw98pkqpXs9wsPg7)
 
 ---
 
